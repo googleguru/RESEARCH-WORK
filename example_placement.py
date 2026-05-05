@@ -1,80 +1,118 @@
 #!/usr/bin/env python3
-"""Example: Run quantum and classical placement algorithms"""
+"""Quantum VLSI Placement - Expert Implementation
 
-from benchmarks import CircuitGenerator, BenchmarkEvaluator
-from classical_solver import GeneticPlacementSolver, SimulatedAnnealingSolver
+Features:
+  - Quantum algorithms (QAOA, VQE) for placement optimization
+  - QUBO formulation from placement constraints
+  - ISPD 2019 benchmark support
+  - Hybrid quantum-classical refinement
+  - First iteration optimization flow
+"""
+
+from benchmarks import CircuitGenerator
+from benchmarks.ispd2019 import ISPD2019Loader
+from quantum_placement.qubo_formulation import PlacementQUBO
 from quantum_placement.qaoa import QAOAPlacementOptimizer
+from quantum_placement.vqe import VQEPlacementSolver
+from quantum_placement.hybrid_optimizer import HybridPlacementOptimizer
+from classical_solver import SimulatedAnnealingSolver
 from placement_core.legalization import Legalizer
+from placement_core.metrics import PlacementMetrics
 from config import PlacementConfig
 
 
-def main():
-    # Configuration
+def run_quantum_example():
+    """Run quantum placement on synthetic circuit."""
     config = PlacementConfig()
-    config.die_width = 500.0
-    config.die_height = 500.0
+    config.die_width = 300.0
+    config.die_height = 300.0
 
-    # Generate benchmark circuit
-    print("Generating benchmark circuit...")
+    # Generate test circuit
     netlist = CircuitGenerator.generate_random_circuit(
-        num_cells=20,
-        num_nets=50,
-        avg_fanout=3,
-        seed=42
-    )
+        num_cells=16, num_nets=40, avg_fanout=3, seed=42)
+
+    print("\n" + "="*70)
+    print("QUANTUM VLSI PLACEMENT - FIRST ITERATION")
+    print("="*70)
     print(f"Circuit: {netlist.get_cell_count()} cells, {netlist.get_net_count()} nets")
 
-    # Initialize solvers
-    ga_solver = GeneticPlacementSolver(
-        population_size=config.genetic_pop_size,
-        generations=config.genetic_generations
-    )
+    # QUBO formulation
+    qubo_form = PlacementQUBO(netlist, config.die_width, config.die_height,
+                             grid_cells=4)
+    qubo_form.build_qubo(wl_weight=1.0, overlap_weight=5.0)
+    print(f"QUBO: {qubo_form.get_qubit_count()} qubits, "
+          f"{len(qubo_form.qubo)} terms")
 
-    sa_solver = SimulatedAnnealingSolver(
-        initial_temp=config.sa_initial_temp,
-        cooling_rate=config.sa_cooling_rate
-    )
+    # QAOA optimization
+    print("\n[QAOA] Depth=2, Iterations=30")
+    qaoa = QAOAPlacementOptimizer(qubo_form, depth=2)
+    qaoa_place, _, _ = qaoa.optimize(max_iterations=30)
 
-    qaoa_optimizer = QAOAPlacementOptimizer(
-        num_qubits=netlist.get_cell_count(),
-        depth=config.qaoa_depth
-    )
+    # VQE optimization
+    print("[VQE] Ansatz Depth=2, Iterations=30")
+    vqe = VQEPlacementSolver(qubo_form, ansatz_depth=2)
+    vqe_place, _, _ = vqe.solve(max_iterations=30)
 
-    # Run benchmarks
-    evaluator = BenchmarkEvaluator()
-
-    print("\nRunning Genetic Algorithm...")
-    ga_result = evaluator.evaluate_algorithm(
-        ga_solver, netlist,
-        config.die_width, config.die_height,
-        "Genetic Algorithm"
-    )
-
-    print("Running Simulated Annealing...")
-    sa_result = evaluator.evaluate_algorithm(
-        sa_solver, netlist,
-        config.die_width, config.die_height,
-        "Simulated Annealing"
-    )
-
-    # Print results
-    evaluator.print_summary()
-    evaluator.compare_algorithms()
-
-    # Legalize solutions
-    print("\nLegalizing placements...")
+    # Legalize
     legalizer = Legalizer(grid_unit=config.grid_unit)
+    qaoa_legal = legalizer.legalize(qaoa_place, netlist,
+                                   config.die_width, config.die_height)
+    vqe_legal = legalizer.legalize(vqe_place, netlist,
+                                  config.die_width, config.die_height)
 
-    ga_legal = legalizer.legalize(
-        ga_result['placement'], netlist,
-        config.die_width, config.die_height
-    )
-    sa_legal = legalizer.legalize(
-        sa_result['placement'], netlist,
-        config.die_width, config.die_height
-    )
+    # Metrics
+    qaoa_hpwl = PlacementMetrics.half_perimeter_wirelength(qaoa_legal, netlist)
+    vqe_hpwl = PlacementMetrics.half_perimeter_wirelength(vqe_legal, netlist)
 
-    print("Placement complete!")
+    print(f"\nResults:")
+    print(f"  QAOA HPWL: {qaoa_hpwl:.0f}")
+    print(f"  VQE HPWL:  {vqe_hpwl:.0f}")
+
+
+def run_hybrid_example():
+    """Run hybrid quantum-classical optimization."""
+    config = PlacementConfig()
+    config.die_width = 350.0
+    config.die_height = 350.0
+
+    netlist = CircuitGenerator.generate_grid_circuit(4, 4, spacing=1.5)
+
+    print("\n" + "="*70)
+    print("HYBRID QUANTUM-CLASSICAL OPTIMIZATION")
+    print("="*70)
+
+    hybrid = HybridPlacementOptimizer(netlist, config.die_width,
+                                     config.die_height, config)
+    placement = hybrid.optimize_iterations(num_iterations=3, quantum_depth=2)
+
+    hpwl = PlacementMetrics.half_perimeter_wirelength(placement, netlist)
+    print(f"\nFinal HPWL: {hpwl:.0f}")
+
+
+def run_ispd_example():
+    """Run on ISPD 2019 benchmark (if available)."""
+    print("\n" + "="*70)
+    print("ISPD 2019 BENCHMARK")
+    print("="*70)
+
+    loader = ISPD2019Loader()
+    benchmarks = loader.get_ispd2019_benchmarks()
+    print(f"Available benchmarks: {', '.join(benchmarks[:3])}...")
+    print("\nTo use ISPD benchmarks:")
+    print("  1. Download ISPD 2019 files (superblue*.{nodes,nets,scl,pl})")
+    print("  2. Place in benchmark directory")
+    print("  3. Call: loader.load_benchmark('path/', 'superblue1')")
+
+
+def main():
+    """Run examples."""
+    run_quantum_example()
+    run_hybrid_example()
+    run_ispd_example()
+
+    print("\n" + "="*70)
+    print("For detailed flow, run: python placement_iteration_flow.py")
+    print("="*70)
 
 
 if __name__ == "__main__":

@@ -7,6 +7,7 @@ Architecture mirrors DREAMPlace but with quantum operators:
   3. Decode bitstring to grid placement
   4. Legalize with QuantumLegalizer
   5. Iteratively refine critical-net regions
+  6. (Optional) emit DREAMPlace-style visualization frames
 """
 
 import random
@@ -32,15 +33,27 @@ class QuantumVLSIPlacer:
     die_width  : float
     die_height : float
     config     : QuantumPlacerConfig
+    visualize  : bool — emit DREAMPlace-style frames when True
+    out_dir    : str  — directory for visualization output
     """
 
     def __init__(self, netlist, die_width: float, die_height: float,
-                 config: QuantumPlacerConfig | None = None):
+                 config: QuantumPlacerConfig | None = None,
+                 visualize: bool = False,
+                 out_dir: str = "docs"):
         self.netlist = netlist
         self.die_width = die_width
         self.die_height = die_height
         self.cfg = config or QuantumPlacerConfig()
+        self.visualize = visualize
+        self.out_dir = out_dir
         self._history: list[dict] = []
+        self._viz = None
+
+        if visualize:
+            from quantum_placement_visualization import PlacementAnimationGenerator
+            self._viz = PlacementAnimationGenerator(
+                netlist, die_width, die_height, out_dir=out_dir)
 
     # ------------------------------------------------------------------ public
 
@@ -51,6 +64,8 @@ class QuantumVLSIPlacer:
         print(f"  Nets      : {self.netlist.net_count}")
         print(f"  Die       : {self.die_width:.1f} × {self.die_height:.1f}")
         print(f"  Algorithm : {self.cfg.algorithm.upper()}")
+        if self.visualize:
+            print(f"  Viz output: {self.out_dir}/")
 
         # Step 1 — Build QUBO
         wl_op = QUBOWirelengthOperator(
@@ -69,39 +84,49 @@ class QuantumVLSIPlacer:
         print(f"  QUBO size : {num_qubits} qubits, {combined_Q.nnz()} terms")
 
         # Step 2 — Quantum solve
-        bits = self._quantum_solve(combined_Q.Q, num_qubits)
+        bits = self._quantum_solve(combined_Q.Q, num_qubits, wl_op)
 
         # Step 3 — Decode to continuous placement
         placement = wl_op.decode_placement(bits)
         self._log("Global (Quantum)", placement)
+        self._capture(placement, iteration=0)
 
         # Step 4 — Legalize
         legalizer = QuantumLegalizer(row_height=self.cfg.row_height)
         placement = legalizer.legalize(
             placement, self.netlist, self.die_width, self.die_height)
         self._log("Legalised", placement)
+        self._capture(placement, iteration=1)
 
         # Step 5 — Critical-net refinement
         for it in range(self.cfg.refinement_iterations):
             placement = self._refine_critical_nets(placement, it)
             placement = legalizer.legalize(
                 placement, self.netlist, self.die_width, self.die_height)
-            self._log(f"Refinement iter {it+1}", placement)
+            self._log(f"Refinement iter {it + 1}", placement)
+            self._capture(placement, iteration=it + 2)
 
         print("=" * 60)
+
+        if self._viz is not None:
+            self._viz.save_all(fps=6)
+
         return placement
 
     # ------------------------------------------------------------------ internals
 
-    def _quantum_solve(self, Q: dict, num_qubits: int) -> str:
+    def _quantum_solve(self, Q: dict, num_qubits: int, wl_op) -> str:
         algo = self.cfg.algorithm.lower()
 
+        # Wrap solver to collect intermediate frames during QAOA/VQE/QA
         if algo == "qaoa":
             solver = QAOAPlacer(
                 Q, num_qubits,
                 p_depth=self.cfg.qaoa_depth,
                 shots=self.cfg.qaoa_shots)
+            solver._viz_hook = self._make_viz_hook(wl_op)
             result = solver.run(max_iter=self.cfg.qaoa_max_iter)
+
         elif algo == "vqe":
             solver = VQEPlacer(
                 Q, num_qubits,
@@ -109,9 +134,11 @@ class QuantumVLSIPlacer:
                 depth=self.cfg.vqe_depth,
                 shots=self.cfg.vqe_shots)
             result = solver.run(max_iter=self.cfg.vqe_max_iter)
+
         elif algo == "quantum_annealing":
             solver = QuantumAnnealer(Q, num_qubits,
                                      num_replicas=self.cfg.qa_num_replicas)
+            solver._viz_hook = self._make_viz_hook(wl_op)
             result = solver.run(
                 num_sweeps=self.cfg.qa_sweeps,
                 T_start=self.cfg.qa_T_start, T_end=self.cfg.qa_T_end,
@@ -122,15 +149,27 @@ class QuantumVLSIPlacer:
 
         return result.placement.get("_bitstring", "0" * num_qubits)
 
+    def _make_viz_hook(self, wl_op):
+        """Return a callable that captures intermediate placements."""
+        if self._viz is None:
+            return None
+        counter = [0]
+        def hook(bits: str):
+            if counter[0] % max(1, self.cfg.qaoa_max_iter // 10) == 0:
+                pl = wl_op.decode_placement(bits)
+                self._viz.add_frame(pl, iteration=counter[0])
+            counter[0] += 1
+        return hook
+
     def _refine_critical_nets(self, placement: dict, iteration: int) -> dict:
         """Move cells connected to high-HPWL nets toward their net centroid."""
-        # Identify top-10 critical nets by HPWL
         net_hpwl = []
         for net_id, net_info in self.netlist.nets.items():
             xs = [placement[c][0] for c, _ in net_info["pins"] if c in placement]
             ys = [placement[c][1] for c, _ in net_info["pins"] if c in placement]
             if len(xs) >= 2:
-                net_hpwl.append((net_id, (max(xs) - min(xs)) + (max(ys) - min(ys))))
+                net_hpwl.append(
+                    (net_id, (max(xs) - min(xs)) + (max(ys) - min(ys))))
         net_hpwl.sort(key=lambda x: x[1], reverse=True)
         critical = {n for n, _ in net_hpwl[:10]}
 
@@ -151,20 +190,22 @@ class QuantumVLSIPlacer:
                 w = self.netlist.cells[cid]["width"]
                 h = self.netlist.cells[cid]["height"]
                 step = rng.gauss(0, 2.0)
-                new_x = max(0.0, min(x + (cx - x) * 0.3 + step,
-                                     self.die_width - w))
-                new_y = max(0.0, min(y + (cy - y) * 0.3 + step,
-                                     self.die_height - h))
-                refined[cid] = (new_x, new_y)
+                refined[cid] = (
+                    max(0.0, min(x + (cx - x) * 0.3 + step, self.die_width - w)),
+                    max(0.0, min(y + (cy - y) * 0.3 + step, self.die_height - h)),
+                )
 
         return refined
 
     def _log(self, label: str, placement: dict):
         hpwl = QuantumPlacementMetrics.hpwl(placement, self.netlist)
-        ov = QuantumPlacementMetrics.total_overlap_area(placement, self.netlist)
-        bv = QuantumPlacementMetrics.boundary_violations(
+        ov   = QuantumPlacementMetrics.total_overlap_area(placement, self.netlist)
+        bv   = QuantumPlacementMetrics.boundary_violations(
             placement, self.netlist, self.die_width, self.die_height)
-        entry = {"stage": label, "hpwl": hpwl, "overlap": ov, "boundary": bv}
-        self._history.append(entry)
+        self._history.append({"stage": label, "hpwl": hpwl, "overlap": ov, "boundary": bv})
         print(f"  {label:30s}  HPWL={hpwl:10.2f}  "
               f"Overlap={ov:8.2f}  BndViol={bv:8.2f}")
+
+    def _capture(self, placement: dict, iteration: int):
+        if self._viz is not None:
+            self._viz.add_frame(placement, iteration=iteration)

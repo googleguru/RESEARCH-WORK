@@ -216,11 +216,31 @@ numpy >= 1.24
 scipy >= 1.10
 qiskit >= 1.0        (optional — falls back to classical simulation)
 qiskit-aer >= 0.13   (optional)
+matplotlib >= 3.5    (for visualization)
+pillow >= 9.0        (for image processing)
 ```
 
 ```bash
 pip install -r requirements.txt
 ```
+
+### Docker Setup
+
+For environments where dependencies are difficult to install (e.g., GitHub Codespaces), use Docker:
+
+```bash
+# Build and run with Docker
+./run_docker.sh
+
+# Or use docker-compose
+docker-compose up
+
+# Or manually:
+docker build -t quantum-vlsi-placement .
+docker run -v $(pwd)/output:/app/output quantum-vlsi-placement
+```
+
+The Docker setup includes all required dependencies and generates DREAMPlace-style visualizations in the `output/` directory.
 
 ---
 

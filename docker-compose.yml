@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  quantum-placement:
+    build: .
+    volumes:
+      - ./docs:/app/docs
+      - ./output:/app/output
+    command: ["python", "generate_ispd2019_visualization.py", "--num_cells", "50", "--algorithm", "quantum_annealing", "--out_dir", "/app/output"]
+    environment:
+      - PYTHONUNBUFFERED=1

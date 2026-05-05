@@ -71,7 +71,7 @@ class HybridPlacementOptimizer:
                 placement, self.netlist)
             overlap = self._compute_overlap_penalty(placement)
 
-            print(f"{it} (LocalSearch):12} {'Classical':15} {hpwl:12.0f} {overlap:10.3f}")
+            print(f"{it:2} (LocalSearch)    Classical       {hpwl:12.0f} {overlap:10.3f}")
             self.placement_history.append(placement)
 
         print(f"{'-'*50}")

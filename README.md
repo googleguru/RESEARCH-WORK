@@ -6,14 +6,98 @@ ISPD 2019 benchmarks only.
 
 ---
 
-## Animation
+## Animation — Combined 4-Panel View
 
-| ISPD 2019 Circuit | Density Map | QUBO Energy Landscape | Quantum Gradient Field |
-|:-----------------:|:-----------:|:---------------------:|:----------------------:|
+| ISPD 2019 Circuit Layout | Density Map | QUBO Energy Landscape | Quantum Gradient Field |
+|:------------------------:|:-----------:|:---------------------:|:----------------------:|
 | ![circuit](docs/circuit_layout.gif) | ![density](docs/density_map.gif) | ![energy](docs/qubo_energy.gif) | ![gradient](docs/quantum_gradient.gif) |
-| Cell placement evolving over QAOA iterations. Red = macros, blue = routing. | Per-bin cell-area density. Dark = overflow. Drives QUBO density penalty. | QUBO Hamiltonian energy landscape. Dark = high energy regions (crowded). | Quantum gradient field guiding cells away from high-density regions. |
+| Cell layout evolution.<br>Red = macros · blue = nets | Per-bin cell-area density.<br>Dark = overflow | Smoothed QUBO energy field.<br>Dark = high-energy (crowded) | Gradient magnitude field.<br>Dark = high repulsion force |
 
-> Run `python run_quantum_vlsi_placement.py` to generate placement animations.
+![combined animation](docs/quantum_placement_animation.gif)
+
+---
+
+## Frame-by-Frame: Circuit Layout
+
+Each frame shows the ISPD 2019 cell placement at one stage of the quantum
+placement flow. White background, salmon standard cells, red macros, navy net lines.
+
+| Iter 000 — Random Init | Iter 001 — QUBO Grid Decode | Iter 002 — Post-Legalization | Iter 003 — Refinement 1 |
+|:----------------------:|:---------------------------:|:----------------------------:|:----------------------:|
+| ![](docs/frames/circuit_layout_frame_000.png) | ![](docs/frames/circuit_layout_frame_001.png) | ![](docs/frames/circuit_layout_frame_002.png) | ![](docs/frames/circuit_layout_frame_003.png) |
+
+| Iter 004 — Refinement 2 | Iter 005 — Refinement 3 | Iter 006 — Refinement 4 | Iter 007 — Final |
+|:-----------------------:|:-----------------------:|:-----------------------:|:----------------:|
+| ![](docs/frames/circuit_layout_frame_004.png) | ![](docs/frames/circuit_layout_frame_005.png) | ![](docs/frames/circuit_layout_frame_006.png) | ![](docs/frames/circuit_layout_frame_007.png) |
+
+---
+
+## Frame-by-Frame: Density Map
+
+Shows per-bin cell-area density. White = empty bins; dark = overcrowded bins.
+The density penalty drives the QUBO solver to spread cells.
+
+| Iter 000 — Random Init | Iter 001 — QUBO Grid Decode | Iter 002 — Post-Legalization | Iter 003 — Refinement 1 |
+|:----------------------:|:---------------------------:|:----------------------------:|:----------------------:|
+| ![](docs/frames/density_map_frame_000.png) | ![](docs/frames/density_map_frame_001.png) | ![](docs/frames/density_map_frame_002.png) | ![](docs/frames/density_map_frame_003.png) |
+
+| Iter 004 — Refinement 2 | Iter 005 — Refinement 3 | Iter 006 — Refinement 4 | Iter 007 — Final |
+|:-----------------------:|:-----------------------:|:-----------------------:|:----------------:|
+| ![](docs/frames/density_map_frame_004.png) | ![](docs/frames/density_map_frame_005.png) | ![](docs/frames/density_map_frame_006.png) | ![](docs/frames/density_map_frame_007.png) |
+
+---
+
+## Frame-by-Frame: QUBO Energy Landscape
+
+Gaussian-smoothed potential field derived from the density grid.
+Equivalent to DREAMPlace's Electric Potential. Dark = high-energy regions where
+the QUBO Hamiltonian penalises cell overlap.
+
+| Iter 000 — Random Init | Iter 001 — QUBO Grid Decode | Iter 002 — Post-Legalization | Iter 003 — Refinement 1 |
+|:----------------------:|:---------------------------:|:----------------------------:|:----------------------:|
+| ![](docs/frames/qubo_energy_frame_000.png) | ![](docs/frames/qubo_energy_frame_001.png) | ![](docs/frames/qubo_energy_frame_002.png) | ![](docs/frames/qubo_energy_frame_003.png) |
+
+| Iter 004 — Refinement 2 | Iter 005 — Refinement 3 | Iter 006 — Refinement 4 | Iter 007 — Final |
+|:-----------------------:|:-----------------------:|:-----------------------:|:----------------:|
+| ![](docs/frames/qubo_energy_frame_004.png) | ![](docs/frames/qubo_energy_frame_005.png) | ![](docs/frames/qubo_energy_frame_006.png) | ![](docs/frames/qubo_energy_frame_007.png) |
+
+---
+
+## Frame-by-Frame: Quantum Gradient Field
+
+Gradient magnitude of the QUBO energy landscape.
+Equivalent to DREAMPlace's Electric Field. Shows the repulsion force magnitude
+that drives cells away from overcrowded regions.
+
+| Iter 000 — Random Init | Iter 001 — QUBO Grid Decode | Iter 002 — Post-Legalization | Iter 003 — Refinement 1 |
+|:----------------------:|:---------------------------:|:----------------------------:|:----------------------:|
+| ![](docs/frames/quantum_gradient_frame_000.png) | ![](docs/frames/quantum_gradient_frame_001.png) | ![](docs/frames/quantum_gradient_frame_002.png) | ![](docs/frames/quantum_gradient_frame_003.png) |
+
+| Iter 004 — Refinement 2 | Iter 005 — Refinement 3 | Iter 006 — Refinement 4 | Iter 007 — Final |
+|:-----------------------:|:-----------------------:|:-----------------------:|:----------------:|
+| ![](docs/frames/quantum_gradient_frame_004.png) | ![](docs/frames/quantum_gradient_frame_005.png) | ![](docs/frames/quantum_gradient_frame_006.png) | ![](docs/frames/quantum_gradient_frame_007.png) |
+
+---
+
+## Frame-by-Frame: Combined 4-Panel
+
+Full side-by-side view at each stage.
+
+| Iter 000 — Random Init | Iter 001 — QUBO Grid Decode |
+|:----------------------:|:---------------------------:|
+| ![](docs/frames/combined_frame_000.png) | ![](docs/frames/combined_frame_001.png) |
+
+| Iter 002 — Post-Legalization | Iter 003 — Refinement 1 |
+|:----------------------------:|:-----------------------:|
+| ![](docs/frames/combined_frame_002.png) | ![](docs/frames/combined_frame_003.png) |
+
+| Iter 004 — Refinement 2 | Iter 005 — Refinement 3 |
+|:-----------------------:|:-----------------------:|
+| ![](docs/frames/combined_frame_004.png) | ![](docs/frames/combined_frame_005.png) |
+
+| Iter 006 — Refinement 4 | Iter 007 — Final |
+|:-----------------------:|:----------------:|
+| ![](docs/frames/combined_frame_006.png) | ![](docs/frames/combined_frame_007.png) |
 
 ---
 
@@ -65,7 +149,7 @@ ISPD 2019 benchmarks only.
 | **Build QUBO Objective** | Compute wirelength + density gradient | `QUBOWirelengthOperator` + `QUBODensityOperator` → combined sparse QUBO |
 | **Quantum Solve** | Nesterov gradient descent | QAOA (COBYLA outer loop) / VQE (HEA or PIA) / Quantum Annealing (PIMC/Trotter) |
 | **Update Grid Positions** | Cell coordinate update via gradient step | Decode best-energy bitstring → `(x, y)` via `QUBOWirelengthOperator.decode_placement` |
-| **Macro Legalization** | Macro macro-legalize with fixed boundaries | Macros assigned to nearest legal row, then movable cells resolve around them |
+| **Macro Legalization** | Macro-legalize with fixed boundaries | Macros assigned to nearest legal row; movable cells resolve around them |
 | **Tetris Legalization** | Tetris-style left-scan legalizer | `QuantumLegalizer` — row-based scan, cursor-x advance per row |
 | **Abacus Refinement** | Abacus min-displacement refinement | Critical-net centroid pull — top-10 nets by HPWL refined iteratively |
 | **Independent Set Matching** | Optimal matching within independent sets | Pairwise swap evaluated by HPWL delta; quantum-assisted for large sets |
@@ -104,6 +188,11 @@ quantum_placement_config/            ← Hyperparameter configuration
 quantum_vlsi_placer/                 ← Main placement engine
   └── quantum_placer.py              ← QuantumVLSIPlacer (full flow orchestrator)
 
+quantum_placement_visualization/     ← DREAMPlace-style visualization
+  ├── circuit_layout_renderer.py     ← White-bg cell+net layout view
+  ├── qubo_field_renderer.py         ← Density / QUBO energy / gradient views
+  └── animation_generator.py         ← Frame-by-frame PNG + GIF builder
+
 ispd2019_benchmark/                  ← ISPD 2019 benchmarks only
   ├── benchmark_loader.py            ← Bookshelf format (.nodes/.nets/.pl/.scl)
   ├── benchmark_evaluator.py         ← HPWL, density overflow, displacement
@@ -122,16 +211,13 @@ ispd2019_benchmark/                  ← ISPD 2019 benchmarks only
 
 ### VQE — Variational Quantum Eigensolver
 - Minimises `⟨ψ(θ)|H_QUBO|ψ(θ)⟩` over parameterised ansatz
-- Two ansatz options:
-  - **Hardware-Efficient (HEA)**: `Ry→Rz` layers + linear CNOT chain
-  - **Problem-Inspired (PIA)**: CNOT gates placed only on QUBO-active qubit pairs
-- Optimizer: COBYLA / SPSA
+- **Hardware-Efficient Ansatz (HEA)**: `Ry→Rz` layers + linear CNOT chain
+- **Problem-Inspired Ansatz (PIA)**: CNOT gates placed only on QUBO-active qubit pairs
 
 ### Quantum Annealing (PIMC)
 - Simulates transverse-field Ising model via Path-Integral Monte Carlo
 - Suzuki-Trotter decomposition with `R` replicas
 - Annealing schedule: `Γ: 5.0 → 0.01`, `T: 5.0 → 0.1`
-- Inter-replica coupling drives tunnelling out of local minima
 
 ---
 
@@ -140,11 +226,11 @@ ispd2019_benchmark/                  ← ISPD 2019 benchmarks only
 ```
 H_total = λ_wl · H_wirelength  +  λ_d · H_density
 
-H_wirelength = Σ_{nets} Σ_{(c1,c2) ∈ clique(net)} Σ_k  w_k · x_{c1,k} · x_{c2,k}
-H_density    = Σ_{(c1,c2)} √(area_c1 · area_c2) · Σ_k  (x_{c1,k}·x_{c2,k} + y_{c1,k}·y_{c2,k})
+H_wirelength = Σ_nets  Σ_(c1,c2) ∈ clique(net)  Σ_k  w_k · x_{c1,k} · x_{c2,k}
+H_density    = Σ_(c1,c2)  √(area_c1 · area_c2) · Σ_k  (x_{c1,k}·x_{c2,k} + y_{c1,k}·y_{c2,k})
 
 Encoding: each movable cell → 2 × bits_per_dim qubits
-          grid resolution   → 2^bits_per_dim bins per axis
+          grid resolution   → 2^bits_per_dim bins per axis (default 8×8)
 ```
 
 ---
@@ -152,18 +238,16 @@ Encoding: each movable cell → 2 × bits_per_dim qubits
 ## Usage
 
 ```bash
-# Synthetic ISPD 2019 benchmark (no files needed)
-python run_quantum_vlsi_placement.py
+# Generate all visualization frames (fast, no quantum hardware needed)
+python generate_static_frames.py
 
-# Real ISPD 2019 benchmark files (Bookshelf format)
+# Full quantum placement with live visualization
+python generate_ispd2019_visualization.py \
+    --algorithm quantum_annealing --num_cells 150
+
+# Real ISPD 2019 files
 python run_quantum_vlsi_placement.py \
-    --benchmark_dir /path/to/ispd2019 \
-    --name ispd2019_test1 \
-    --algorithm qaoa
-
-# Algorithm options: qaoa | vqe | quantum_annealing
-python run_quantum_vlsi_placement.py --algorithm vqe --vqe_depth 4
-python run_quantum_vlsi_placement.py --algorithm quantum_annealing --qa_sweeps 500
+    --benchmark_dir /path/to/ispd2019 --name ispd2019_test1 --algorithm qaoa
 
 # Run test suite
 python test_quantum_vlsi_placement.py
@@ -178,15 +262,15 @@ from quantum_vlsi_placer import QuantumVLSIPlacer
 cfg = QuantumPlacerConfig(
     algorithm        = "qaoa",      # qaoa | vqe | quantum_annealing
     bits_per_dim     = 3,           # grid = 2^3 = 8 bins per axis
-    wl_weight        = 1.0,         # wirelength QUBO weight (λ_wl)
-    density_weight   = 8.0,         # overlap penalty weight (λ_d)
-    qaoa_depth       = 2,           # QAOA p-layers
-    qaoa_max_iter    = 60,
-    refinement_iterations = 3,      # critical-net refinement passes
+    wl_weight        = 1.0,
+    density_weight   = 8.0,
+    qaoa_depth       = 2,
+    refinement_iterations = 5,
 )
 
-placer = QuantumVLSIPlacer(netlist, die_width, die_height, cfg)
-placement = placer.run()            # returns {cell_id: (x, y)}
+placer = QuantumVLSIPlacer(netlist, die_width, die_height, cfg,
+                            visualize=True, out_dir="docs")
+placement = placer.run()
 ```
 
 ---
@@ -205,8 +289,6 @@ placement = placer.run()            # returns {cell_id: (x, y)}
 | ispd2019_test8 | 2 M | 3 M |
 | ispd2019_test9 | 5 M | 7.5 M |
 
-Cell format: Bookshelf (`.nodes` `.nets` `.pl` `.scl` `.wts`)
-
 ---
 
 ## Requirements
@@ -214,33 +296,15 @@ Cell format: Bookshelf (`.nodes` `.nets` `.pl` `.scl` `.wts`)
 ```
 numpy >= 1.24
 scipy >= 1.10
+matplotlib >= 3.5
+pillow >= 9.0
 qiskit >= 1.0        (optional — falls back to classical simulation)
 qiskit-aer >= 0.13   (optional)
-matplotlib >= 3.5    (for visualization)
-pillow >= 9.0        (for image processing)
 ```
 
 ```bash
 pip install -r requirements.txt
 ```
-
-### Docker Setup
-
-For environments where dependencies are difficult to install (e.g., GitHub Codespaces), use Docker:
-
-```bash
-# Build and run with Docker
-./run_docker.sh
-
-# Or use docker-compose
-docker-compose up
-
-# Or manually:
-docker build -t quantum-vlsi-placement .
-docker run -v $(pwd)/output:/app/output quantum-vlsi-placement
-```
-
-The Docker setup includes all required dependencies and generates DREAMPlace-style visualizations in the `output/` directory.
 
 ---
 
@@ -249,5 +313,5 @@ The Docker setup includes all required dependencies and generates DREAMPlace-sty
 - Y.-C. Lu et al., "DREAMPlace: Deep Learning Toolkit-Enabled GPU Acceleration for Modern VLSI Placement," *DAC 2019*
 - E. Farhi et al., "A Quantum Approximate Optimization Algorithm," *arXiv:1411.4028*
 - A. Peruzzo et al., "A variational eigenvalue solver on a photonic quantum chip," *Nature Communications 2014*
-- M. Suzuki, "Quantum Monte Carlo Methods," *Springer 1987* (Trotter decomposition / PIMC)
+- M. Suzuki, "Quantum Monte Carlo Methods," *Springer 1987* (Trotter / PIMC)
 - ISPD 2019 Contest: "Initial Placement with Mixed-Size Cells"

@@ -349,9 +349,15 @@ The current repository can verify the following values from its own synthetic/de
 | Sample placement HPWL (qaoa, ispd2019_test1, seed 1) | 114.03 | [experiments_demo/experiments.csv](experiments_demo/experiments.csv) |
 | Sample placement density overflow (qaoa, ispd2019_test1, seed 1) | 7.41% | [experiments_demo/experiments.csv](experiments_demo/experiments.csv) |
 | Sample runtime (qaoa, ispd2019_test1, seed 1) | 6.17 s | [experiments_demo/experiments.csv](experiments_demo/experiments.csv) |
-| HPWL gap vs. DREAMPlace | Not available in this workspace | No DREAMPlace baseline or legal placement logs are included |
-| Runtime ratio vs. DREAMPlace | Not available in this workspace | No DREAMPlace baseline or runtime trace is included |
-| Windowed vs. monolithic PIMC gap | Not measured in this repository | No monolithic/windowed sweep output is bundled |
+| Synthetic QAOA sweep HPWL (seed 1) | 1881.46 | [experiments_tmp/sweep.log](experiments_tmp/sweep.log) |
+| Synthetic QAOA sweep overflow (seed 1) | 4.06% | [experiments_tmp/sweep.log](experiments_tmp/sweep.log) |
+| Synthetic QAOA sweep HPWL (seed 2) | 2016.37 | [experiments_tmp/sweep.log](experiments_tmp/sweep.log) |
+| Synthetic QAOA sweep overflow (seed 2) | 4.41% | [experiments_tmp/sweep.log](experiments_tmp/sweep.log) |
+| Synthetic QAOA sweep HPWL (seed 3) | 1852.96 | [experiments_tmp/sweep.log](experiments_tmp/sweep.log) |
+| Synthetic QAOA sweep overflow (seed 3) | 2.88% | [experiments_tmp/sweep.log](experiments_tmp/sweep.log) |
+| HPWL gap vs. DREAMPlace | N/A (not available in this workspace) | No DREAMPlace baseline or legal placement logs are included |
+| Runtime ratio vs. DREAMPlace | N/A (not available in this workspace) | No DREAMPlace baseline or runtime trace is included |
+| Windowed vs. monolithic PIMC gap | N/A (not measured in this repository) | No monolithic/windowed sweep output is bundled |
 
 These values are suitable for a transparent methodology section, but they should not be presented as a claim of industrial-scale competitiveness against DREAMPlace or a complete ISPD 2005 benchmark study.
 

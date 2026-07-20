@@ -1,11 +1,10 @@
 """
-VQE Placement Algorithm — Variational Quantum Eigensolver for VLSI placement.
+VQE Placement Algorithm — a compact variational solver prototype for VLSI placement.
 
-Minimises E(θ) = <ψ(θ)|H_QUBO|ψ(θ)> where H_QUBO is the Ising Hamiltonian
-derived from the VLSI placement QUBO.
-
-Ansatz: Hardware-Efficient (HEA) by default, or Problem-Inspired (PIA).
-Optimizer: SPSA (gradient-free, noisy-hardware friendly) or COBYLA.
+The implementation minimizes the expectation of a QUBO-derived Hamiltonian
+using a variational circuit ansatz. The design is intentionally lightweight so
+that it can be run locally and inspected easily, but it should be regarded as a
+research-oriented baseline rather than a production placement solver.
 """
 
 import numpy as np
@@ -64,6 +63,18 @@ class VQEPlacer:
     # ------------------------------------------------------------------ public
 
     def run(self, max_iter: int = 100) -> VQEResult:
+        if self.num_qubits < 2:
+            self._best_bits = "0" * self.num_qubits
+            self._best_energy = self._eval_bits(self._best_bits)
+            self._history.append(self._best_energy)
+            return VQEResult(
+                placement={"_bitstring": self._best_bits},
+                energy=self._best_energy,
+                ansatz_type=type(self.ansatz).__name__,
+                iterations=0,
+                convergence=self._history,
+            )
+
         x0 = self.ansatz.random_params()
 
         result = minimize(

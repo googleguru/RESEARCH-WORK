@@ -21,7 +21,11 @@ from quantum_placement_algorithms import QAOAPlacer, VQEPlacer, QuantumAnnealer
 from quantum_placement_metrics import QuantumPlacementMetrics
 from quantum_placement_config import QuantumPlacerConfig
 from quantum_vlsi_placer import QuantumVLSIPlacer
-from ispd2019_benchmark import SyntheticISPD2019, ISPD2019Evaluator
+from ispd2019_benchmark import (
+    SyntheticISPD2019,
+    ISPD2019Evaluator,
+    ISPD2019BenchmarkLoader,
+)
 
 
 # ------------------------------------------------------------------ helpers
@@ -156,6 +160,24 @@ def test_ispd2019_evaluator():
     print("  PASS: ISPD2019Evaluator")
 
 
+def test_synthetic_generator_supports_ispd2005_names():
+    gen = SyntheticISPD2019(seed=0)
+    nl, dw, dh, init_pl = gen.generate("ispd2005_test1", num_cells=18)
+    assert nl.cell_count == 18
+    assert dw > 0 and dh > 0
+    assert len(init_pl) == 18
+    print("  PASS: SyntheticISPD2019 ISPD2005 alias")
+
+
+def test_benchmark_loader_requires_bookshelf_files():
+    try:
+        ISPD2019BenchmarkLoader.load("/tmp", "missing_benchmark")
+    except FileNotFoundError:
+        print("  PASS: benchmark loader missing-file handling")
+    else:
+        raise AssertionError("Expected FileNotFoundError for missing Bookshelf files")
+
+
 def test_end_to_end_qaoa():
     gen = SyntheticISPD2019(seed=1)
     nl, dw, dh, init_pl = gen.generate("ispd2019_test1", num_cells=12)
@@ -198,6 +220,8 @@ TESTS = [
     test_placement_metrics,
     test_synthetic_generator,
     test_ispd2019_evaluator,
+    test_synthetic_generator_supports_ispd2005_names,
+    test_benchmark_loader_requires_bookshelf_files,
     test_end_to_end_qaoa,
     test_end_to_end_quantum_annealing,
 ]

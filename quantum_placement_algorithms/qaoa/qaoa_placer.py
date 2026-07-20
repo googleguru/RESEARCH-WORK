@@ -1,10 +1,10 @@
 """
-QAOA Placement Algorithm — Quantum Approximate Optimization for VLSI placement.
+QAOA Placement Algorithm — a lightweight QAOA prototype for VLSI placement.
 
-Implements p-layer QAOA on the combined wirelength+density QUBO.
-Classical outer loop: COBYLA (scipy).
-Quantum inner loop: Qiskit Aer statevector/shot simulator.
-Falls back to scipy differential_evolution when Qiskit is absent.
+The implementation treats the placement objective as a binary optimization
+problem over a compact QUBO and uses a variational QAOA-style loop to search
+for low-energy assignments. The code is intended for experimentation and
+visualization rather than claiming industrial-scale performance.
 """
 
 import numpy as np
@@ -55,6 +55,17 @@ class QAOAPlacer:
 
     def run(self, max_iter: int = 60) -> QAOAResult:
         x0 = np.random.uniform(0, 2 * np.pi, 2 * self.p)
+        if self.num_qubits < 2:
+            self._best_bits = "0" * self.num_qubits
+            self._best_cost = self._eval_bits(self._best_bits)
+            self._history.append(self._best_cost)
+            return QAOAResult(
+                placement={"_bitstring": self._best_bits},
+                cost=self._best_cost,
+                p_depth=self.p,
+                iterations=0,
+                convergence=self._history,
+            )
 
         result = minimize(
             self._objective,

@@ -1,7 +1,7 @@
 """
 generate_ispd2019_visualization.py
 ===================================
-Runs Quantum VLSI Placement on a synthetic ISPD 2019 benchmark and produces
+Runs Quantum VLSI Placement on a synthetic, ISPD-inspired benchmark and produces
 DREAMPlace-style visualizations:
 
   docs/circuit_layout.gif          ← Cell layout animation (per iteration)
@@ -18,7 +18,7 @@ Usage
   # Larger benchmark:
   python generate_ispd2019_visualization.py --num_cells 200 --algorithm quantum_annealing
 
-  # Real ISPD 2019 files:
+  # Optional user-provided Bookshelf files:
   python generate_ispd2019_visualization.py \
       --benchmark_dir /path/to/ispd2019 --name ispd2019_test1
 """
@@ -40,9 +40,9 @@ from ispd2019_benchmark import (
 
 def parse_args():
     p = argparse.ArgumentParser(
-        description="Quantum VLSI Placement — ISPD 2019 Visualization")
+        description="Quantum VLSI Placement — synthetic or user-supplied benchmark visualization")
     p.add_argument("--benchmark_dir", default=None,
-                   help="Directory with real ISPD 2019 Bookshelf files")
+                   help="Optional directory with Bookshelf benchmark files")
     p.add_argument("--name", default="ispd2019_test1")
     p.add_argument("--algorithm", default="quantum_annealing",
                    choices=["qaoa", "vqe", "quantum_annealing"])
@@ -54,6 +54,8 @@ def parse_args():
     p.add_argument("--qa_sweeps", type=int, default=300)
     p.add_argument("--refinement_iterations", type=int, default=5)
     p.add_argument("--out_dir", default="docs")
+    p.add_argument("--seed", type=int, default=42,
+                   help="Random seed for reproducible runs")
     return p.parse_args()
 
 
@@ -62,13 +64,20 @@ def main():
 
     # ---- Load / generate benchmark ----
     if args.benchmark_dir and os.path.isdir(args.benchmark_dir):
-        print(f"Loading ISPD 2019 benchmark: {args.name}")
-        netlist, die_w, die_h, init_pl = ISPD2019BenchmarkLoader.load(
-            args.benchmark_dir, args.name)
+        print(f"Loading benchmark files from {args.benchmark_dir}: {args.name}")
+        try:
+            netlist, die_w, die_h, init_pl = ISPD2019BenchmarkLoader.load(
+                args.benchmark_dir, args.name)
+        except FileNotFoundError as exc:
+            print(f"  {exc}")
+            print("Falling back to a synthetic, ISPD-inspired benchmark.")
+            gen = SyntheticISPD2019(seed=args.seed)
+            netlist, die_w, die_h, init_pl = gen.generate(
+                args.name, num_cells=args.num_cells)
     else:
-        print(f"Generating synthetic ISPD 2019 benchmark: {args.name} "
+        print(f"Generating synthetic, ISPD-inspired benchmark: {args.name} "
               f"({args.num_cells} cells)")
-        gen = SyntheticISPD2019(seed=42)
+        gen = SyntheticISPD2019(seed=args.seed)
         netlist, die_w, die_h, init_pl = gen.generate(
             args.name, num_cells=args.num_cells)
 
@@ -92,6 +101,7 @@ def main():
         netlist, die_w, die_h, cfg,
         visualize=True,
         out_dir=args.out_dir,
+        seed=args.seed,
     )
     final_pl = placer.run()
 

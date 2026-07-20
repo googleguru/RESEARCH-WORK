@@ -11,6 +11,7 @@ Architecture mirrors DREAMPlace but with quantum operators:
 """
 
 import random
+import numpy as np
 from quantum_placement_config import QuantumPlacerConfig
 from quantum_placement_operators import (
     QUBOWirelengthOperator,
@@ -40,13 +41,15 @@ class QuantumVLSIPlacer:
     def __init__(self, netlist, die_width: float, die_height: float,
                  config: QuantumPlacerConfig | None = None,
                  visualize: bool = False,
-                 out_dir: str = "docs"):
+                 out_dir: str = "docs",
+                 seed: int | None = None):
         self.netlist = netlist
         self.die_width = die_width
         self.die_height = die_height
         self.cfg = config or QuantumPlacerConfig()
         self.visualize = visualize
         self.out_dir = out_dir
+        self.seed = seed
         self._history: list[dict] = []
         self._viz = None
 
@@ -59,6 +62,10 @@ class QuantumVLSIPlacer:
 
     def run(self) -> dict[str, tuple[float, float]]:
         """Full quantum placement flow. Returns final legal placement."""
+        if self.seed is not None:
+            random.seed(self.seed)
+            np.random.seed(self.seed)
+
         print(f"\n{'Quantum VLSI Placement':=^60}")
         print(f"  Cells     : {self.netlist.cell_count}")
         print(f"  Nets      : {self.netlist.net_count}")

@@ -1,42 +1,29 @@
 """
-ISPD 2019 Benchmark Loader.
+Benchmark loader for Bookshelf-style placement files.
 
-Supports the Bookshelf format used by ISPD 2019 placement contest:
-  .nodes  — cell dimensions and fixed/movable flags
-  .nets   — netlist connectivity (pin list per net)
-  .pl     — initial placement (x, y, orientation)
-  .scl    — site/row definitions → die dimensions
-  .wts    — optional net weights
-
-Reference circuits (all movable-cell counts are approximate):
-  ispd2019_test1  ~  10k cells
-  ispd2019_test2  ~  25k cells
-  ispd2019_test3  ~  50k cells
-  ispd2019_test4  ~  100k cells
-  ispd2019_test5  ~  200k cells
-  ispd2019_test6  ~  500k cells
-  ispd2019_test7  ~  1M cells
-  ispd2019_test8  ~  2M cells
-  ispd2019_test9  ~  5M cells
+This repository does not ship the official ISPD contest suite. The loader
+accepts user-provided benchmark directories containing Bookshelf-style files
+such as .nodes, .nets, .pl and .scl. For reproducible experiments without
+external files, use SyntheticISPD2019.
 """
 
 import os
 from quantum_placement_database.netlist import QuantumNetlist
 
 
-ISPD2019_BENCHMARKS = [
+SUPPORTED_BENCHMARKS = [
     "ispd2019_test1", "ispd2019_test2", "ispd2019_test3",
-    "ispd2019_test4", "ispd2019_test5", "ispd2019_test6",
-    "ispd2019_test7", "ispd2019_test8", "ispd2019_test9",
+    "ispd2019_test4", "ispd2005_test1", "ispd2005_test2",
+    "ispd2005_test3", "ispd2005_test4",
 ]
 
 
 class ISPD2019BenchmarkLoader:
-    """Load ISPD 2019 benchmark in Bookshelf format."""
+    """Load benchmark files in Bookshelf-style format."""
 
     @staticmethod
     def benchmark_names() -> list[str]:
-        return list(ISPD2019_BENCHMARKS)
+        return list(SUPPORTED_BENCHMARKS)
 
     @staticmethod
     def load(benchmark_dir: str, name: str):
@@ -51,6 +38,14 @@ class ISPD2019BenchmarkLoader:
         init_placement: dict {cell_id: (x, y)}
         """
         base = os.path.join(benchmark_dir, name)
+        required_files = [base + ext for ext in (".nodes", ".nets", ".pl", ".scl")]
+        present_files = [path for path in required_files if os.path.isfile(path)]
+        if not present_files:
+            raise FileNotFoundError(
+                f"No benchmark files for '{name}' were found in '{benchmark_dir}'. "
+                f"Expected one of: {', '.join(os.path.basename(path) for path in required_files)}"
+            )
+
         netlist = QuantumNetlist()
         die_width = die_height = 0.0
         init_placement: dict[str, tuple[float, float]] = {}
@@ -87,7 +82,6 @@ class ISPD2019BenchmarkLoader:
                         continue
                     if line.lower().startswith("netdegree"):
                         parts = line.split()
-                        # "NetDegree : <deg> <net_id>"
                         current_net = parts[-1].rstrip(":")
                         if current_net == ":":
                             current_net = None
@@ -130,6 +124,11 @@ class ISPD2019BenchmarkLoader:
                     if len(parts) >= 3:
                         cid, x, y = parts[0], float(parts[1]), float(parts[2])
                         init_placement[cid] = (x, y)
+
+        if not netlist.cells:
+            raise FileNotFoundError(
+                f"No movable cells were parsed from benchmark '{name}' in '{benchmark_dir}'."
+            )
 
         # Fall back: derive die from max placement coords
         if die_width == 0 and init_placement:

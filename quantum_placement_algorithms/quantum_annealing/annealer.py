@@ -1,10 +1,11 @@
 """
-Quantum Annealing Placement — simulates a transverse-field Ising model annealing
-schedule to solve the VLSI placement QUBO.
+Quantum Annealing Placement — a classical simulation of a transverse-field
+annealing-inspired solver for the VLSI placement QUBO.
 
-No quantum hardware required: simulates the annealing dynamics classically
-using path-integral Monte Carlo (PIMC) with a Suzuki-Trotter expansion.
-This mirrors what D-Wave hardware does, making results portable.
+The implementation uses a simple path-integral Monte Carlo (PIMC) style
+annealing loop with a Suzuki-Trotter expansion. It is useful as a baseline and
+for studying annealing-like dynamics in a controlled, local environment, but it
+is not intended to reproduce the full behavior of commercial quantum annealers.
 """
 
 import numpy as np
@@ -49,6 +50,14 @@ class QuantumAnnealer:
         Anneal from high transverse field (Gamma_start) to low (Gamma_end)
         while cooling temperature T_start → T_end.
         """
+        if self.n == 0:
+            return AnnealingResult(
+                placement={"_bitstring": ""},
+                energy=0.0,
+                schedule_steps=0,
+                convergence=[],
+            )
+
         # Initialise random spin configurations for all replicas
         spins = self.rng.choice([0, 1], size=(self.R, self.n))
         convergence = []

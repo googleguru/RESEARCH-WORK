@@ -1,8 +1,48 @@
 # Quantum-based VLSI Placement Algorithms
 
 Quantum algorithms for VLSI physical design placement using QAOA, VQE, and
-Quantum Annealing. Framework architecture inspired by DREAMPlace — no deep learning.
-ISPD 2019 benchmarks only.
+Quantum Annealing. The repository is best understood as a quantum-inspired
+placement prototype for research and education: it provides a modular workflow
+for encoding placement objectives into QUBO form, exploring solver behavior on
+small synthetic netlists, and visualizing intermediate placements. It is not
+positioned as a production-ready replacement for industrial placers such as
+DREAMPlace, Cadence Innovus, or Synopsys ICC.
+
+---
+
+## Research Positioning
+
+This project is intentionally scoped as a proof-of-concept for quantum-inspired
+placement research rather than a claim of industrial-scale competitiveness.
+The main value lies in three areas:
+
+- A modular pipeline for translating placement objectives into QUBO form.
+- A reproducible workflow for testing QAOA, VQE, and simulated annealing ideas
+  on small, synthetic, ISPD-inspired circuits.
+- An educational visualization stack that makes solver behavior and placement
+  dynamics more interpretable.
+
+### What the repository does well
+- Implements a complete end-to-end prototype flow from QUBO construction to
+  legalization and refinement.
+- Supports reproducible experiments with a deterministic synthetic generator.
+- Exposes solver behavior through visualizations and metrics.
+
+### What it does not claim
+- It does not claim to outperform commercial placers on large industrial designs.
+- It does not claim to be directly deployable on current quantum hardware at
+  realistic VLSI scale.
+- It does not attempt to reproduce the full fidelity of state-of-the-art
+  analytical placement engines.
+
+### Suggested framing for a paper or report
+- Position the work as a methodological prototype for exploring quantum-inspired
+  optimization in placement.
+- Emphasize modularity, reproducibility, and visualization over absolute
+  placement quality.
+- Pair the results with clear scalability limits and future directions.
+- Frame the contribution as complementary to commercial physical-design flows,
+  especially for algorithmic experimentation and educational use.
 
 ---
 
@@ -19,8 +59,9 @@ ISPD 2019 benchmarks only.
 
 ## Frame-by-Frame: Circuit Layout
 
-Each frame shows the ISPD 2019 cell placement at one stage of the quantum
-placement flow. White background, salmon standard cells, red macros, navy net lines.
+Each frame shows a synthetic, ISPD-inspired cell placement at one stage of the
+quantum placement flow. White background, salmon standard cells, red macros,
+navy net lines.
 
 | Iter 000 — Random Init | Iter 001 — QUBO Grid Decode | Iter 002 — Post-Legalization | Iter 003 — Refinement 1 |
 |:----------------------:|:---------------------------:|:----------------------------:|:----------------------:|
@@ -253,6 +294,21 @@ python run_quantum_vlsi_placement.py \
 python test_quantum_vlsi_placement.py
 ```
 
+### Reproducibility notes
+- Use the same seed across runs for comparable results.
+- The default workflow uses synthetic, ISPD-inspired netlists for portability.
+- For external benchmark files, supply a directory with Bookshelf-style inputs.
+- Install dependencies with `pip install -r requirements.txt`.
+- Report the algorithm, seed, grid resolution, and refinement iterations when sharing results.
+
+### Experimental protocol
+1. Generate a small synthetic netlist with a fixed seed.
+2. Run a single solver configuration and record HPWL, overlap, and boundary violation metrics.
+3. Repeat with a second seed only when studying stability or sensitivity.
+4. Interpret results as a methodological study rather than a claim of industrial performance.
+
+See [docs/academic_revision_note.md](docs/academic_revision_note.md) for a concise, paper-style framing of the project’s scope and contributions.
+
 ### Configuration
 
 ```python
@@ -275,19 +331,23 @@ placement = placer.run()
 
 ---
 
-## ISPD 2019 Benchmarks
+## Benchmarks
 
-| Benchmark | Cells (approx.) | Nets |
-|-----------|----------------|------|
-| ispd2019_test1 | 10 K | 15 K |
-| ispd2019_test2 | 25 K | 37 K |
-| ispd2019_test3 | 50 K | 75 K |
-| ispd2019_test4 | 100 K | 150 K |
-| ispd2019_test5 | 200 K | 300 K |
-| ispd2019_test6 | 500 K | 750 K |
-| ispd2019_test7 | 1 M | 1.5 M |
-| ispd2019_test8 | 2 M | 3 M |
-| ispd2019_test9 | 5 M | 7.5 M |
+The repository does not ship the official ISPD 2019 or ISPD 2005 contest suites.
+The default path is a small synthetic benchmark generator that creates reproducible,
+illustrative netlists. If you have your own Bookshelf-style files, pass them with
+`--benchmark_dir` and `--name`.
+
+| Name | Purpose |
+|------|---------|
+| ispd2019_test1 | Small synthetic example |
+| ispd2019_test2 | Medium synthetic example |
+| ispd2019_test3 | Larger synthetic example |
+| ispd2019_test4 | Large synthetic example |
+| ispd2005_test1 | Additional synthetic alias |
+| ispd2005_test2 | Additional synthetic alias |
+| ispd2005_test3 | Additional synthetic alias |
+| ispd2005_test4 | Additional synthetic alias |
 
 ---
 
@@ -314,4 +374,5 @@ pip install -r requirements.txt
 - E. Farhi et al., "A Quantum Approximate Optimization Algorithm," *arXiv:1411.4028*
 - A. Peruzzo et al., "A variational eigenvalue solver on a photonic quantum chip," *Nature Communications 2014*
 - M. Suzuki, "Quantum Monte Carlo Methods," *Springer 1987* (Trotter / PIMC)
-- ISPD 2019 Contest: "Initial Placement with Mixed-Size Cells"
+- Bookshelf-style placement files are supported when provided by the user.
+- The repo uses a synthetic, ISPD-inspired generator by default for reproducible experiments.

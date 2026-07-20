@@ -307,6 +307,12 @@ python test_quantum_vlsi_placement.py
 3. Repeat with a second seed only when studying stability or sensitivity.
 4. Interpret results as a methodological study rather than a claim of industrial performance.
 
+### Structured experiment logging
+The repository now includes a lightweight experiment runner in [run_experiment_suite.py](run_experiment_suite.py) and [quantum_placement_experiments/experiment_runner.py](quantum_placement_experiments/experiment_runner.py). It writes CSV and JSON logs that can be used to build tables for runtime, quality, and ablation studies.
+
+### Results generation helpers
+Use [generate_results_tables.py](generate_results_tables.py) to create a LaTeX-quality table scaffold from experiment logs, and [generate_ablation_sweeps.py](generate_ablation_sweeps.py) to create a parameter grid for ablation studies. A short paper-ready results scaffold is available in [docs/results_scaffold.md](docs/results_scaffold.md).
+
 See [docs/academic_revision_note.md](docs/academic_revision_note.md) for a concise, paper-style framing of the project’s scope and contributions.
 
 ### Configuration

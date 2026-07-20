@@ -1,0 +1,2 @@
+benchmark_name,algorithm,seed,hpwl,density_overflow,avg_displacement,runtime_seconds,bits_per_dim,refinement_iterations
+ispd2019_test1,qaoa,1,114.02553507090246,7.406328125000001,2.8344710221459213,6.1657631397247314,2,1

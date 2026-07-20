@@ -337,6 +337,26 @@ placement = placer.run()
 
 ---
 
+## Measured results snapshot
+
+The current repository can verify the following values from its own synthetic/demo workflow. The requested ISPD 2005 and DREAMPlace comparisons are not available in this workspace because no official benchmark suite files or DREAMPlace baseline artifacts are bundled here.
+
+| Quantity | Measured value | Evidence |
+|---|---:|---|
+| Surrogate fidelity $\rho$ (random placements), ispd2005_test1 | 0.0545 | [experiments_tmp/surrogate.csv](experiments_tmp/surrogate.csv) |
+| Surrogate fidelity $\rho$ (random placements), ispd2005_test2 | -0.0664 | [experiments_tmp/surrogate.csv](experiments_tmp/surrogate.csv) |
+| Surrogate fidelity $\rho$ (trajectory) | Not measured in this repository | — |
+| Sample placement HPWL (qaoa, ispd2019_test1, seed 1) | 114.03 | [experiments_demo/experiments.csv](experiments_demo/experiments.csv) |
+| Sample placement density overflow (qaoa, ispd2019_test1, seed 1) | 7.41% | [experiments_demo/experiments.csv](experiments_demo/experiments.csv) |
+| Sample runtime (qaoa, ispd2019_test1, seed 1) | 6.17 s | [experiments_demo/experiments.csv](experiments_demo/experiments.csv) |
+| HPWL gap vs. DREAMPlace | Not available in this workspace | No DREAMPlace baseline or legal placement logs are included |
+| Runtime ratio vs. DREAMPlace | Not available in this workspace | No DREAMPlace baseline or runtime trace is included |
+| Windowed vs. monolithic PIMC gap | Not measured in this repository | No monolithic/windowed sweep output is bundled |
+
+These values are suitable for a transparent methodology section, but they should not be presented as a claim of industrial-scale competitiveness against DREAMPlace or a complete ISPD 2005 benchmark study.
+
+---
+
 ## Benchmarks
 
 The repository does not ship the official ISPD 2019 or ISPD 2005 contest suites.
